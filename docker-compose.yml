@@ -1,6 +1,21 @@
-# ⚠️  WARNING: This docker-compose.yml is AI-generated and needs to be tested
-# Docker Compose configuration for Astroport.ONE
-# This allows easy deployment and management of Astroport.ONE in containers
+# Astroport.ONE Docker Compose Configuration
+# Simple one-command installation: docker-compose up -d
+#
+# This configuration provides:
+# - IPFS node for decentralized storage
+# - NOSTR relay (strfry) for decentralized social networking
+# - UPassport API for file management (UPlanet File Contract)
+# - Astroport Swarm Node Manager (12345.sh) for network synchronization
+# - Automatic daily maintenance (20h12.process.sh via cron)
+# - Hourly constellation sync (backfill_constellation.sh via _12345.sh)
+#
+# Ports:
+# - 54321: uSPOT API (UPassport) - File upload/download
+# - 8080: IPFS Gateway - Access IPFS content
+# - 7777: NOSTR Relay (strfry) - NOSTR protocol
+# - 12345: SYNC (Astroport Swarm Node Manager) - Network synchronization
+# - 9090: Prometheus metrics server
+# - 9100: Prometheus Node Exporter
 
 version: '3.8'
 
@@ -22,8 +37,24 @@ services:
       - "8080:8080"    # IPFS Gateway
       - "7777:7777"    # NOSTR Relay (strfry)
       - "12345:12345"  # SYNC (Astroport Swarm Node Manager)
+      - "9090:9090"    # Prometheus metrics server
+      - "9100:9100"    # Prometheus Node Exporter
     
     # Volume mounts for persistence
+    # IMPORTANT: Storage requirements
+    # - Each MULTIPASS user: 1-10 GB
+    # - Each ZEN Card user: 128 GB
+    # - IPFS cache: Can grow to several TB
+    # - Recommended: 4+ TB for production satellite node
+    # - Minimum: 1 TB for testing
+    #
+    # Volume details:
+    # - astroport-data: User data (MULTIPASS: 1-10 GB each, ZEN Card: 128 GB each)
+    #   + Persistent caches: tmp/$IPFSNODEID, tmp/coucou, tmp/flashmem, tmp/swarm
+    #   + Economic data (wallets, game state, logs)
+    #   + Cooperative governance data
+    # - astroport-workspace: Repository clones and development files
+    # - astroport-ipfs: IPFS distributed storage (can grow to several TB)
     volumes:
       - astroport-data:/home/astroport/.zen
       - astroport-workspace:/home/astroport/.zen/workspace
@@ -36,14 +67,13 @@ services:
       - HOME=/home/astroport
       - USER=astroport
       - NON_INTERACTIVE=true
-      # Captain setup (set SETUP_CAPTAIN=true to enable)
-      # - SETUP_CAPTAIN=false  # Set to true to run captain setup on container start
-      # - CAPTAIN_EMAIL=  # Required: Email address for captain account
-      # - CAPTAIN_LAT=  # Required: Latitude (will be rounded to 0.01°)
-      # - CAPTAIN_LON=  # Required: Longitude (will be rounded to 0.01°)
-      # - SWARM_KEY_PATH=  # Optional: Path to swarm.key file (for UPlanet ẐEN)
-      # - MJ_APIKEY_IPFS=  # Optional: IPFS path to retrieve MJ_APIKEY from
-      # - UPLANET_TYPE=  # Optional: "ORIGIN" or "ZEN" (auto-detected from swarm.key if not set)
+      # Optional: Captain setup (uncomment and configure to enable)
+      # - SETUP_CAPTAIN=true
+      # - CAPTAIN_EMAIL=your@email.com
+      # - CAPTAIN_LAT=48.8566
+      # - CAPTAIN_LON=2.3522
+      # - SWARM_KEY_PATH=/path/to/swarm.key  # For UPlanet ẐEN
+      # - UPLANET_TYPE=ZEN  # or ORIGIN
     
     # Resource limits (adjust as needed)
     deploy:
@@ -61,21 +91,31 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 120s  # Increased to allow full startup
     
     # Command to start all services
     command: /home/astroport/docker-start.sh
 
 volumes:
+  # Main data volume - Grows with users (1-10 GB per MULTIPASS, 128 GB per ZEN Card)
+  # Persistent caches: tmp/$IPFSNODEID, tmp/coucou, tmp/flashmem, tmp/swarm
   astroport-data:
     driver: local
     name: astroport-data
+    # For production: Consider using a named volume on a large disk
+    # Example: docker volume create --driver local --opt type=none --opt device=/mnt/large-disk/astroport-data --opt o=bind astroport-data
+  
+  # Workspace volume - Repository clones
   astroport-workspace:
     driver: local
     name: astroport-workspace
+  
+  # IPFS volume - Distributed storage (can grow to several TB)
   astroport-ipfs:
     driver: local
     name: astroport-ipfs
+    # For production: Consider using a named volume on a large disk
+    # Example: docker volume create --driver local --opt type=none --opt device=/mnt/large-disk/astroport-ipfs --opt o=bind astroport-ipfs
 
 networks:
   default:

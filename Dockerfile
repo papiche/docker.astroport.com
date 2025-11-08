@@ -8,29 +8,62 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Paris
 
-# Install base dependencies
+# Install base dependencies (matching native install.sh)
 RUN apt-get update && apt-get install -y \
     git \
+    zip \
+    ssss \
+    make \
+    cmake \
+    docker.io \
+    docker-compose \
+    hdparm \
+    iptables \
+    fail2ban \
+    openssh-server \
+    parallel \
+    npm \
+    shellcheck \
+    multitail \
+    netcat-traditional \
+    ncdu \
+    chromium \
+    miller \
+    inotify-tools \
     curl \
     wget \
+    net-tools \
+    mosquitto \
+    libsodium* \
+    libcurl4-openssl-dev \
+    libgpgme-dev \
+    libffi-dev \
     python3 \
     python3-pip \
     python3-venv \
+    python3-setuptools \
+    python3-wheel \
+    python3-dotenv \
+    python3-gpg \
+    python3-jwcrypto \
+    python3-brotli \
+    python3-aiohttp \
+    python3-prometheus-client \
+    python3-tk \
     jq \
     sudo \
-    systemd \
-    systemd-sysv \
     build-essential \
     g++ \
-    make \
     libssl-dev \
     zlib1g-dev \
     liblmdb-dev \
     libflatbuffers-dev \
     libsecp256k1-dev \
     libzstd-dev \
-    netcat-traditional \
     bc \
+    prometheus \
+    prometheus-node-exporter \
+    cron \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user for Astroport.ONE
@@ -59,7 +92,8 @@ ENV HOME=/home/astroport
 ENV WORKSPACE_DIR=/home/astroport/.zen/workspace
 
 # Create .zen directory structure
-RUN mkdir -p /home/astroport/.zen/{workspace,tmp,logs,config}
+RUN mkdir -p /home/astroport/.zen/{workspace,tmp,logs,config} && \
+    mkdir -p /home/astroport/.zen/tmp/prometheus
 
 # Run installation (non-interactive mode)
 # Note: Step 6 (systemd services) is skipped in Docker as systemd doesn't run in containers
@@ -71,6 +105,10 @@ RUN /home/astroport/install.NEW.sh \
 # Copy startup script for Docker
 COPY --chown=astroport:astroport docker-start.sh /home/astroport/
 RUN chmod +x /home/astroport/docker-start.sh
+
+# Copy cron setup script
+COPY --chown=astroport:astroport scripts/docker-cron-setup.sh /home/astroport/
+RUN chmod +x /home/astroport/docker-cron-setup.sh
 
 # Copy Astroport.ONE scripts if they exist (12345.sh and _12345.sh)
 # These will be available after installation
@@ -85,7 +123,8 @@ USER astroport
 # 8080: IPFS Gateway
 # 7777: NOSTR Relay (strfry)
 # 12345: SYNC (Astroport Swarm Node Manager)
-EXPOSE 54321 8080 7777 12345
+# 9090: Prometheus metrics server
+EXPOSE 54321 8080 7777 12345 9090
 
 # Set default command to start all services
 CMD ["/home/astroport/docker-start.sh"]
