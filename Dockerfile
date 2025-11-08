@@ -129,9 +129,11 @@ EXPOSE 54321 8080 7777 12345 9090
 # Set default command to start all services
 CMD ["/home/astroport/docker-start.sh"]
 
-# Labels
+# Labels for GitHub Container Registry
+# Update org.opencontainers.image.source with your repository URL
+LABEL org.opencontainers.image.source="https://github.com/papiche/docker.astroport.com"
+LABEL org.opencontainers.image.description="Astroport.ONE Docker - Decentralized cooperative internet node (IPFS + NOSTR + UPlanet ẐEN + N²)"
+LABEL org.opencontainers.image.licenses="AGPL-3.0"
 LABEL maintainer="Astroport.ONE"
-LABEL description="Astroport.ONE installation container"
 LABEL version="1.0.0"
-LABEL ai-generated="true"
 
