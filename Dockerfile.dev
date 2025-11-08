@@ -1,0 +1,79 @@
+# ⚠️  WARNING: This Dockerfile is AI-generated and needs to be tested
+# Development Dockerfile for Astroport.ONE
+# This includes development tools and allows for interactive development
+
+FROM ubuntu:22.04
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+
+# Install base dependencies + development tools
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    wget \
+    python3 \
+    python3-pip \
+    python3-venv \
+    jq \
+    sudo \
+    vim \
+    nano \
+    htop \
+    net-tools \
+    iputils-ping \
+    build-essential \
+    g++ \
+    make \
+    libssl-dev \
+    zlib1g-dev \
+    liblmdb-dev \
+    libflatbuffers-dev \
+    libsecp256k1-dev \
+    libzstd-dev \
+    netcat-traditional \
+    bc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -s /bin/bash astroport && \
+    echo "astroport ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    usermod -aG sudo astroport
+
+# Set working directory
+WORKDIR /home/astroport
+
+# Copy installation scripts
+COPY --chown=astroport:astroport install.NEW.sh /home/astroport/
+COPY --chown=astroport:astroport scripts/ /home/astroport/scripts/
+COPY --chown=astroport:astroport templates/ /home/astroport/templates/
+
+# Make scripts executable
+RUN chmod +x /home/astroport/install.NEW.sh && \
+    chmod +x /home/astroport/scripts/*.sh && \
+    chmod +x /home/astroport/scripts/uninstall/*.sh
+
+# Switch to non-root user
+USER astroport
+
+# Set environment variables
+ENV HOME=/home/astroport
+ENV WORKSPACE_DIR=/home/astroport/.zen/workspace
+ENV PATH="/home/astroport/.local/bin:${PATH}"
+
+# Create .zen directory structure
+RUN mkdir -p /home/astroport/.zen/{workspace,tmp,logs,config}
+
+# Expose ports
+EXPOSE 54321 8080 8008
+
+# Default command (interactive shell)
+CMD ["/bin/bash"]
+
+# Labels
+LABEL maintainer="Astroport.ONE"
+LABEL description="Astroport.ONE development container"
+LABEL version="1.0.0-dev"
+LABEL ai-generated="true"
+

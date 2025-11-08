@@ -1,0 +1,83 @@
+# ⚠️  WARNING: This docker-compose.yml is AI-generated and needs to be tested
+# Docker Compose configuration for Astroport.ONE
+# This allows easy deployment and management of Astroport.ONE in containers
+
+version: '3.8'
+
+services:
+  astroport:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: astroport-one
+    hostname: astroport.local
+    restart: unless-stopped
+    
+    # Network mode for better IPFS/NOSTR connectivity
+    network_mode: bridge
+    
+    # Port mappings
+    ports:
+      - "54321:54321"  # uSPOT API (UPassport)
+      - "8080:8080"    # IPFS Gateway
+      - "7777:7777"    # NOSTR Relay (strfry)
+      - "12345:12345"  # SYNC (Astroport Swarm Node Manager)
+    
+    # Volume mounts for persistence
+    volumes:
+      - astroport-data:/home/astroport/.zen
+      - astroport-workspace:/home/astroport/.zen/workspace
+      - astroport-ipfs:/home/astroport/.ipfs
+    
+    # Environment variables
+    environment:
+      - TZ=Europe/Paris
+      - WORKSPACE_DIR=/home/astroport/.zen/workspace
+      - HOME=/home/astroport
+      - USER=astroport
+      - NON_INTERACTIVE=true
+      # Captain setup (set SETUP_CAPTAIN=true to enable)
+      # - SETUP_CAPTAIN=false  # Set to true to run captain setup on container start
+      # - CAPTAIN_EMAIL=  # Required: Email address for captain account
+      # - CAPTAIN_LAT=  # Required: Latitude (will be rounded to 0.01°)
+      # - CAPTAIN_LON=  # Required: Longitude (will be rounded to 0.01°)
+      # - SWARM_KEY_PATH=  # Optional: Path to swarm.key file (for UPlanet ẐEN)
+      # - MJ_APIKEY_IPFS=  # Optional: IPFS path to retrieve MJ_APIKEY from
+      # - UPLANET_TYPE=  # Optional: "ORIGIN" or "ZEN" (auto-detected from swarm.key if not set)
+    
+    # Resource limits (adjust as needed)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    
+    # Health check (check if 12345.sh is running)
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "12345.sh", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # Command to start all services
+    command: /home/astroport/docker-start.sh
+
+volumes:
+  astroport-data:
+    driver: local
+    name: astroport-data
+  astroport-workspace:
+    driver: local
+    name: astroport-workspace
+  astroport-ipfs:
+    driver: local
+    name: astroport-ipfs
+
+networks:
+  default:
+    name: astroport-network
+
