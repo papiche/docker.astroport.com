@@ -100,7 +100,7 @@ All data in `~/.zen` is persisted in the `astroport-data` Docker volume.
 
 ```bash
 # Clone the repository
-git clone https://github.com/papiche/Astroport.ONE.git
+git clone https://github.com/papiche/docker.astroport.com.git
 cd docker.astroport.com
 
 # Build and start services
@@ -406,11 +406,10 @@ The default configuration scrapes:
 
 ## 📚 Related Documentation
 
-- [COMPARISON.md](COMPARISON.md) - Detailed comparison between native and Docker installations
 - [README.DOCKER.md](README.DOCKER.md) - Detailed Docker documentation
 - [Installation Scripts](scripts/) - Individual installation step scripts
 - [Uninstallation Scripts](scripts/uninstall/) - Uninstallation step scripts
-- [ZEN.ECONOMY.readme.md](../Astroport.ONE/RUNTIME/ZEN.ECONOMY.readme.md) - Complete economic model documentation
+- [ZEN.ECONOMY.readme.md](https://github.com/papiche/Astroport.ONE/blob/master/RUNTIME/ZEN.ECONOMY.readme.md) - Complete economic model documentation
 - [UPlanet Cooperative](https://ipfs.copylaradio.com/ipns/copylaradio.com/entrance.html) - Cooperative website and information
 
 ## 🤝 Contributing
